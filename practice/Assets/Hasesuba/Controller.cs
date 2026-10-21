@@ -1,5 +1,6 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Controller : MonoBehaviour
 {
@@ -84,6 +85,12 @@ public class Controller : MonoBehaviour
 
     void Update()
     {
+        //ƒ^ƒCƒgƒ‹‚É–ß‚é
+        if (Input.GetKeyDown(KeyCode.Joystick1Button7))
+        {
+            SceneManager.LoadScene("Title Scene");
+        }
+
         // =========================
         // Ž€–S”»’è
         // =========================
