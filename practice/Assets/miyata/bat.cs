@@ -133,7 +133,7 @@ public class bat : MonoBehaviour
 
         if (enemy == null || isAttackCooldown || isAttacking) return;
 
-        KeyCode attackKey = player2 ? KeyCode.Joystick2Button5 : KeyCode.Joystick1Button5;
+        KeyCode attackKey = player2 ? KeyCode.DownArrow : KeyCode.S;
 
         // 1. 攻撃ボタンを押した瞬間（溜め開始）
 
@@ -462,25 +462,33 @@ public class bat : MonoBehaviour
     IEnumerator AttackCooldown(float duration)
 
     {
+
         isAttackCooldown = true;
 
         // 自分のControllerを取得
+
         Controller myController = GetComponent<Controller>();
 
         if (myController != null)
+
         {
+
             myController.isAttackLocked = true;
+
         }
 
         yield return new WaitForSeconds(duration);
 
         if (myController != null)
+
         {
+
             myController.isAttackLocked = false;
+
         }
 
         isAttackCooldown = false;
+
     }
 
 }
-

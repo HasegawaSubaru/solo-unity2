@@ -62,6 +62,9 @@ public class Controller : MonoBehaviour
     public bat Bat;
     public bool isAttackLocked = false;
 
+    // ノックバック後、一度地面から離れたか
+    private bool hasLeftGround = false;
+
     void Start()
     {
         Bat=GetComponent<bat>();
@@ -151,18 +154,22 @@ public class Controller : MonoBehaviour
         if (!isKnockback && !isDead && !isAttackLocked)
         {
             float inputX = 0;
-
             // =========================
             // P1
             // =========================
             if (!player2)
             {
-                inputX = Input.GetAxis("Joy1Horizontal");
-                
-                if (Input.GetKeyDown(KeyCode.Joystick1Button0)&& isGrounded)
+                if (Input.GetKey(KeyCode.A))
+                    inputX = -1;
+
+                if (Input.GetKey(KeyCode.D))
+                    inputX = 1;
+
+                if (Input.GetKeyDown(KeyCode.W) && isGrounded)
                 {
                     Jump(inputX);
                 }
+
             }
 
             // =========================
@@ -170,9 +177,13 @@ public class Controller : MonoBehaviour
             // =========================
             else
             {
-                inputX = Input.GetAxis("Joy2Horizontal");
-                
-                if (Input.GetKeyDown(KeyCode.Joystick2Button0)&& isGrounded)
+                if (Input.GetKey(KeyCode.LeftArrow))
+                    inputX = -1;
+
+                if (Input.GetKey(KeyCode.RightArrow))
+                    inputX = 1;
+
+                if (Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
                 {
                     Jump(inputX);
                 }
@@ -216,24 +227,34 @@ public class Controller : MonoBehaviour
     // 外部（bat.csなど）から呼ばれるノックバック受付口
     // 攻撃の種類ごとに硬直時間（duration）を指定できるように変更
     // =========================
+    // 攻撃を受けたときに呼ばれる
     public void ReceiveKnockback(float powerX, float powerY, float duration)
     {
-        StopAllCoroutines();
+        StopCoroutine(nameof(KnockbackRoutine));
         StartCoroutine(KnockbackRoutine(powerX, powerY, duration));
     }
 
     IEnumerator KnockbackRoutine(float powerX, float powerY, float duration)
     {
+        // 操作をロック
         isKnockback = true;
         isJumping = false;
+        jumpBlocked = false;
 
-        // 一度速度をリセットして、勢いよく吹き飛ばす
+        // 攻撃を受けた瞬間に地面にいるか確認
+        hasLeftGround = !isGrounded;
+
+        // ノックバックで吹き飛ばす
         rb.linearVelocity = Vector2.zero;
         rb.linearVelocity = new Vector2(powerX, powerY);
 
-        // 指定された硬直時間だけ自分の移動をロックする
-        yield return new WaitForSeconds(duration);
+        // 一度地面から離れ、再び着地するまで待つ
+        while (!hasLeftGround || !isGrounded)
+        {
+            yield return null;
+        }
 
+        // 着地したので操作を解禁
         isKnockback = false;
     }
 
@@ -490,6 +511,25 @@ public class Controller : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Ground"))
             isGrounded = false;
+
+        //ノックバック硬直
+        if (collision.gameObject.CompareTag("Ground"))
+
+        {
+
+            isGrounded = false;
+
+            // ノックバック中に地面から離れたことを記録
+
+            if (isKnockback)
+
+            {
+
+                hasLeftGround = true;
+
+            }
+
+        }
     }
 
     //死亡判定
