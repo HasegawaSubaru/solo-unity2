@@ -125,73 +125,71 @@ public class bat : MonoBehaviour
 
     }
 
+
     void Update()
-
     {
+        Controller myController = GetComponent<Controller>();
 
-        // enemyがいない、またはクールダウン中（硬直中）、またはアニメ再生中は入力を受け付けない
+        if (enemy == null || isAttackCooldown || isAttacking)
+            return;
 
-        if (enemy == null || isAttackCooldown || isAttacking) return;
+        if (myController != null &&
+            (myController.isItemStunned || myController.isDead))
+            return;
 
-        KeyCode attackKey = player2 ? KeyCode.DownArrow : KeyCode.S;
+        // コントローラーの攻撃ボタン
+        KeyCode attackKey = player2
+            ? KeyCode.Joystick2Button5
+            : KeyCode.Joystick1Button5;
 
-        // 1. 攻撃ボタンを押した瞬間（溜め開始）
+        // キーボードの攻撃ボタン
+        KeyCode keyboardKey = player2
+            ? KeyCode.DownArrow
+            : KeyCode.S;
 
-        if (Input.GetKeyDown(attackKey))
+        bool attackDown =
+            Input.GetKeyDown(attackKey) ||
+            Input.GetKeyDown(keyboardKey);
 
+        bool attackHeld =
+            Input.GetKey(attackKey) ||
+            Input.GetKey(keyboardKey);
+
+        bool attackUp =
+            Input.GetKeyUp(attackKey) ||
+            Input.GetKeyUp(keyboardKey);
+
+        // 溜め開始
+        if (attackDown && !isCharging)
         {
-
             isCharging = true;
-
             currentChargeTime = 0f;
 
             if (spriteRenderer != null && startChargeSprite != null)
-
-            {
-
                 spriteRenderer.sprite = startChargeSprite;
-
-            }
-
-            Debug.Log((player2 ? "P2" : "P1") + "：その場で溜め開始！");
-
         }
 
-        // 2. 攻撃ボタンを長押ししている間
-
-        if (isCharging && Input.GetKey(attackKey))
-
+        // 溜め中
+        if (isCharging && attackHeld)
         {
-
             currentChargeTime += Time.deltaTime;
-
             UpdateChargeVisual();
 
             if (currentChargeTime >= autoReleaseTime)
-
             {
-
                 currentChargeTime = autoReleaseTime;
-
                 ReleaseAttack();
-
                 return;
-
             }
-
         }
 
-        // 3. 攻撃ボタンを離した瞬間（攻撃発動）
-
-        if (isCharging && Input.GetKeyUp(attackKey))
-
+        // ボタンを離したら攻撃
+        if (isCharging && attackUp)
         {
-
             ReleaseAttack();
-
         }
-
     }
+
 
     void UpdateChargeVisual()
 
@@ -265,8 +263,6 @@ public class bat : MonoBehaviour
 
         {
 
-            Debug.Log((player2 ? "P2" : "P1") + "：範囲外のため空振り！");
-
             if (airAttacksound != null && audioSource != null)
 
             {
@@ -298,23 +294,17 @@ public class bat : MonoBehaviour
         if (releasedChargeTime >= maxChargeTime)
 
         {
-
-            Debug.Log((player2 ? "P2" : "P1") + "：【強・溜め攻撃発動！】");
-
             cooldownDuration = chargedAttackCooldown;
 
             targetAttackSprite = chargedAttackSprite;
 
             targetRecoverySprite = chargedRecoverySprite;
 
-            ExecuteAttack(chargedPowerX, chargedPowerY, chargedHitStun);
+            bool hit = ExecuteAttack(chargedPowerX, chargedPowerY, chargedHitStun);
 
-            if (maxAttacksound != null && audioSource != null)
-
+            if (hit && maxAttacksound != null && audioSource != null)
             {
-
                 audioSource.PlayOneShot(maxAttacksound, 5.0f);
-
             }
 
         }
@@ -322,23 +312,17 @@ public class bat : MonoBehaviour
         else if (releasedChargeTime >= mediumChargeThreshold)
 
         {
-
-            Debug.Log((player2 ? "P2" : "P1") + "：【中・溜め攻撃発動！】");
-
             cooldownDuration = mediumAttackCooldown;
 
             targetAttackSprite = mediumAttackSprite;
 
             targetRecoverySprite = mediumRecoverySprite;
 
-            ExecuteAttack(mediumPowerX, mediumPowerY, mediumHitStun);
+            bool hit = ExecuteAttack(mediumPowerX, mediumPowerY, mediumHitStun);
 
-            if (mediumAttacksound != null && audioSource != null)
-
+            if (hit && mediumAttacksound != null && audioSource != null)
             {
-
                 audioSource.PlayOneShot(mediumAttacksound);
-
             }
 
         }
@@ -346,23 +330,17 @@ public class bat : MonoBehaviour
         else
 
         {
-
-            Debug.Log((player2 ? "P2" : "P1") + "：【通常攻撃発動】");
-
             cooldownDuration = normalAttackCooldown;
 
             targetAttackSprite = normalAttackSprite;
 
             targetRecoverySprite = normalRecoverySprite;
 
-            ExecuteAttack(normalPowerX, normalPowerY, normalHitStun);
+            bool hit = ExecuteAttack(normalPowerX, normalPowerY, normalHitStun);
 
-            if (weakAttacksound != null && audioSource != null)
-
+            if (hit && weakAttacksound != null && audioSource != null)
             {
-
                 audioSource.PlayOneShot(weakAttacksound);
-
             }
 
         }
@@ -407,40 +385,30 @@ public class bat : MonoBehaviour
 
     }
 
-    void ExecuteAttack(float power, float upPower, float hitStunDuration)
-
+    bool ExecuteAttack(float power, float upPower, float hitStunDuration)
     {
-
-        float directionX = 0f;
-
-        if (enemy.position.x > transform.position.x)
-
-        {
-
-            directionX = power;
-
-        }
-
-        else
-
-        {
-
-            directionX = -power;
-
-        }
+        float directionX = enemy.position.x > transform.position.x
+            ? power
+            : -power;
 
         Controller enemyController = enemy.GetComponent<Controller>();
 
         if (enemyController != null)
-
         {
+            AutoGuardItem guard = enemy.GetComponent<AutoGuardItem>();
 
-            enemyController.ReceiveKnockback(directionX, upPower, hitStunDuration);
+            // ガードされたら攻撃失敗
+            if (guard != null && guard.TryBlock(GetComponent<Controller>()))
+            {
+                return false;
+            }
 
+            enemyController.ReceiveKnockback(
+                directionX, upPower, hitStunDuration
+            );
         }
 
-        // ★削除：ここでの一律0.5秒のコルーチン開始は削除し、ReleaseAttack側に統合しました
-
+        return true;
     }
 
     void ResetVisual()

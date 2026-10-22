@@ -65,6 +65,11 @@ public class Controller : MonoBehaviour
     // ノックバック後、一度地面から離れたか
     private bool hasLeftGround = false;
 
+    //アイテム
+    //シールド
+    public bool isItemStunned = false;
+    private Coroutine itemStunCoroutine;
+
     void Start()
     {
         Bat=GetComponent<bat>();
@@ -102,6 +107,12 @@ public class Controller : MonoBehaviour
             Dead();
         }
 
+        //シールド硬直
+        if (isItemStunned && !isDead && !isKnockback)
+        {
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            return;
+        }
 
         //// =========================
         //// 吹き飛ばし
@@ -154,22 +165,24 @@ public class Controller : MonoBehaviour
         if (!isKnockback && !isDead && !isAttackLocked)
         {
             float inputX = 0;
+
             // =========================
             // P1
             // =========================
             if (!player2)
             {
-                if (Input.GetKey(KeyCode.A))
-                    inputX = -1;
+                inputX = Input.GetAxis("Joy1Horizontal");
 
-                if (Input.GetKey(KeyCode.D))
-                    inputX = 1;
+                // キーボード移動
+                if (Input.GetKey(KeyCode.A)) inputX = -1;
+                if (Input.GetKey(KeyCode.D)) inputX = 1;
 
-                if (Input.GetKeyDown(KeyCode.W) && isGrounded)
+                // コントローラーまたはキーボードでジャンプ
+                if ((Input.GetKeyDown(KeyCode.Joystick1Button0) ||
+                     Input.GetKeyDown(KeyCode.W)) && isGrounded)
                 {
                     Jump(inputX);
                 }
-
             }
 
             // =========================
@@ -177,13 +190,15 @@ public class Controller : MonoBehaviour
             // =========================
             else
             {
-                if (Input.GetKey(KeyCode.LeftArrow))
-                    inputX = -1;
+                inputX = Input.GetAxis("Joy2Horizontal");
 
-                if (Input.GetKey(KeyCode.RightArrow))
-                    inputX = 1;
+                // キーボード移動
+                if (Input.GetKey(KeyCode.LeftArrow)) inputX = -1;
+                if (Input.GetKey(KeyCode.RightArrow)) inputX = 1;
 
-                if (Input.GetKeyDown(KeyCode.UpArrow) && isGrounded)
+                // コントローラーまたはキーボードでジャンプ
+                if ((Input.GetKeyDown(KeyCode.Joystick2Button0) ||
+                     Input.GetKeyDown(KeyCode.UpArrow)) && isGrounded)
                 {
                     Jump(inputX);
                 }
@@ -630,6 +645,27 @@ public class Controller : MonoBehaviour
                 audioSource.PlayOneShot(respawnsound,0.3f);
             }
         }
+    }
+
+    //シールド硬直
+    public void ApplyItemStun(float duration)
+    {
+        if (itemStunCoroutine != null)
+        {
+            StopCoroutine(itemStunCoroutine);
+        }
+
+        itemStunCoroutine = StartCoroutine(ItemStunRoutine(duration));
+    }
+
+    private IEnumerator ItemStunRoutine(float duration)
+    {
+        isItemStunned = true;
+
+        yield return new WaitForSeconds(duration);
+
+        isItemStunned = false;
+        itemStunCoroutine = null;
     }
 
     //// =========================
