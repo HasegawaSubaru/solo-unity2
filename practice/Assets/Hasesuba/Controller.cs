@@ -300,7 +300,7 @@ public class Controller : MonoBehaviour
 
             rb.linearVelocity = new Vector2(
                 jumpHorizontalspeed,
-                10f
+                20f
             );
 
         //ジャンプサウンド
