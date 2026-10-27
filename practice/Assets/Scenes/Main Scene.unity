@@ -247,7 +247,7 @@ MonoBehaviour:
   enemy: {fileID: 363107554}
   stopDistance: 0.4
   jumpForwardSpeed: 15
-  slowDistance: 3
+  slowDistance: 4
   isDead: 0
   jumpsound: {fileID: 8300000, guid: f31f2032cb0149f47906358d3e7d8395, type: 3}
   respawnsound: {fileID: 8300000, guid: 2f661b942d4597042bb5cfd7bd8b7214, type: 3}
@@ -847,7 +847,7 @@ MonoBehaviour:
   enemy: {fileID: 240772898}
   stopDistance: 0.4
   jumpForwardSpeed: 15
-  slowDistance: 3
+  slowDistance: 4
   isDead: 0
   jumpsound: {fileID: 8300000, guid: f31f2032cb0149f47906358d3e7d8395, type: 3}
   respawnsound: {fileID: 8300000, guid: 2f661b942d4597042bb5cfd7bd8b7214, type: 3}
