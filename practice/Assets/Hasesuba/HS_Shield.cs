@@ -45,8 +45,6 @@ public class AutoGuardItem : MonoBehaviour
             audioSource.PlayOneShot(Shieldsound);
         }
 
-        Debug.Log("自動ガード発動！ アイテムを消費しました。");
-
         return true;
     }
 }

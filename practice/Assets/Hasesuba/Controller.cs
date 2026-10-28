@@ -215,17 +215,30 @@ public class Controller : MonoBehaviour
                 float moveSpeed = inputX * speed;
 
                 // プレイヤーの振り向き
-                if (inputX > 0)
+                if(!player2)
                 {
-                    spriteRenderer.flipX = false;
+                    if (inputX > 0)
+                    {
+                        spriteRenderer.flipX = false;
+                    }
+                    else if (inputX < 0)
+                    {
+                        spriteRenderer.flipX = true;
+                    }
                 }
-                else if (inputX < 0)
+                else
                 {
-                    spriteRenderer.flipX = true;
+                    if (inputX < 0)
+                    {
+                        spriteRenderer.flipX = false;
+                    }
+                    else if (inputX > 0)
+                    {
+                        spriteRenderer.flipX = true;
+                    }
                 }
-
-                // 相手に近づくときだけ自然に減速
-                moveSpeed = LimitMovement(moveSpeed);
+                    // 相手に近づくときだけ自然に減速
+                    moveSpeed = LimitMovement(moveSpeed);
 
                 rb.linearVelocity = new Vector2(
                moveSpeed,
