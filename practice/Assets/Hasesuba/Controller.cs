@@ -70,6 +70,9 @@ public class Controller : MonoBehaviour
     public bool isItemStunned = false;
     private Coroutine itemStunCoroutine;
 
+    //プレイヤー振り向き処理
+    public SpriteRenderer spriteRenderer;
+
     void Start()
     {
         Bat=GetComponent<bat>();
@@ -210,6 +213,17 @@ public class Controller : MonoBehaviour
             if (isGrounded)//地上
             {
                 float moveSpeed = inputX * speed;
+
+                // プレイヤーの振り向き
+                if (inputX > 0)
+                {
+                    spriteRenderer.flipX = false;
+                }
+                else if (inputX < 0)
+                {
+                    spriteRenderer.flipX = true;
+                }
+
                 // 相手に近づくときだけ自然に減速
                 moveSpeed = LimitMovement(moveSpeed);
 
